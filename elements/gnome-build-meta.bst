@@ -7,7 +7,7 @@ sources:
   # bootc: https://gitlab.gnome.org/GNOME/gnome-build-meta/-/merge_requests/4256
   # keys: https://gitlab.gnome.org/GNOME/gnome-build-meta/-/merge_requests/4289
   track: valentindavid/automatically-generate-keys
-  ref: 49-branchpoint-284-gee4b15e7160e502fa3e007de2c55859f9f0963b6
+  ref: 49-branchpoint-378-g01e9369643339a0c7f93a8d374a73a8f94dfaa95
 # - kind: patch_queue
 #   path: patches/gnome-build-meta
 
