@@ -2,17 +2,13 @@ kind: junction
 
 sources:
 - kind: git_repo
-  # url: gnome_gitlab:gnome/gnome-build-meta.git
-  # Custom branch with generate-keys support
-  # keys: https://gitlab.gnome.org/GNOME/gnome-build-meta/-/merge_requests/4289
-  # track: valentindavid/automatically-generate-keys
-  # ref: 49-branchpoint-414-g736f7794f272f9d9e4b60e9f3a7f32f40518addf
-  url: github:hecknt/gnome-build-meta.git
+  url: gnome_gitlab:gnome/gnome-build-meta.git
   track: master
-# - kind: patch_queue
-#   path: patches/gnome-build-meta
+  # ref: 49-branchpoint-414-g736f7794f272f9d9e4b60e9f3a7f32f40518addf
+  ref: 49-branchpoint-428-gbc21b0851a83aacdd6b984baafc4330145999529
+- kind: patch_queue
+  path: patches/gnome-build-meta
 
-  ref: d5ca3358b9010ea20be296672bdae7fc6431d81d
 config:
   overrides:
     # This along with the patches is required and has to match
