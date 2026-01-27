@@ -41,6 +41,8 @@ config:
     LOGO=img-logo-icon
     DEFAULT_HOSTNAME="bluefin"
     EOF
+    mkdir -p %{install-root}%{sysconfdir}/
+    ln -sf ../usr/lib/os-release %{install-root}%{sysconfdir}/os-release
 
   - mkdir -p "%{install-root}%{datadir}/ublue-os"
   - |

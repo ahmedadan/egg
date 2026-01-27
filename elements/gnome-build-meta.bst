@@ -22,5 +22,8 @@ config:
     # Replace the element so the OCI image doesn't have any apps
     core/meta-gnome-core-apps.bst: core/meta-gnome-core-apps.bst
 
+    # Replace the element so the OCI image generates Bluefin's os-release file
+    oci/os-release.bst: oci/os-release.bst
+
     plugins/buildstream-plugins.bst: plugins/buildstream-plugins.bst
     plugins/buildstream-plugins-community.bst: plugins/buildstream-plugins-community.bst
