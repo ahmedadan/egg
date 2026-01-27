@@ -19,5 +19,4 @@ depends:
   - freedesktop-sdk.bst:components/podman.bst
   - freedesktop-sdk.bst:components/containers-common.bst
   - freedesktop-sdk.bst:components/skopeo.bst
-  # - gnome-build-meta.bst:gnomeos-deps/bootc.bst
   - gnome-build-meta.bst:gnomeos-deps/distrobox.bst

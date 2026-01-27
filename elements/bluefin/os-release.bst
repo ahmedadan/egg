@@ -9,19 +9,19 @@ variables:
 environment:
   # FIXME: configurable
   # IMAGE_REF="ostree-image-signed:docker://ghcr.io/${IMAGE_VENDOR}/${IMAGE_NAME}"
-  IMAGE_NAME: "bluefin-distroless"
+  IMAGE_NAME: "bluefin"
   IMAGE_VENDOR: "projectbluefin"
-  IMAGE_REF: "ostree-image-signed:docker://ghcr.io/projectbluefin/distrolesss"
+  IMAGE_REF: "ostree-image-signed:docker://ghcr.io/projectbluefin/egg"
   IMAGE_FLAVOR: "main"
   IMAGE_TAG: "latest"
 
   IMAGE_PRETTY_NAME: "Bluefin"
   HOME_URL: "https://projectbluefin.io"
   DOCUMENTATION_URL: "https://docs.projectbluefin.io"
-  SUPPORT_URL: "https://github.com/projectbluefin/distroless/issues"
-  BUG_SUPPORT_URL: "https://github.com/projectbluefin/distroless/issues"
+  SUPPORT_URL: "https://github.com/projectbluefin/dakota/issues"
+  BUG_SUPPORT_URL: "https://github.com/projectbluefin/dakota/issues"
   CODE_NAME: "Dakotaraptor"
-  ID: "bluefin-distroless"
+  ID: "bluefin-dakota"
 
 config:
   build-commands:

@@ -1,3 +1,3 @@
-FROM ghcr.io/projectbluefin/distroless:test
+FROM ghcr.io/projectbluefin/egg:latest
 
 RUN bootc container lint || true
