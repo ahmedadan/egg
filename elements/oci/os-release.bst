@@ -9,7 +9,7 @@ variables:
 environment:
   # FIXME: configurable
   # IMAGE_REF="ostree-image-signed:docker://ghcr.io/${IMAGE_VENDOR}/${IMAGE_NAME}"
-  IMAGE_NAME: "bluefin"
+  IMAGE_NAME: "egg"
   IMAGE_VENDOR: "projectbluefin"
   IMAGE_REF: "ostree-image-signed:docker://ghcr.io/projectbluefin/egg"
   IMAGE_FLAVOR: "main"
