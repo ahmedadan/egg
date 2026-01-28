@@ -19,7 +19,6 @@ depends:
 - gnome-build-meta.bst:core/gnome-system-monitor.bst
 - gnome-build-meta.bst:core/nautilus.bst
 - gnome-build-meta.bst:core/simple-scan.bst
-# Until there is ptyxis in the iso
-- gnome-build-meta.bst:core/gnome-console.bst
+- core/ptyxis.bst
 - gnome-build-meta.bst:core/snapshot.bst
 # - gnome-build-meta.bst:sdk/yelp.bst
