@@ -28,12 +28,12 @@ bootc *ARGS:
 
 generate-bootable-image $base_dir=base_dir $filesystem=filesystem:
     #!/usr/bin/env bash
-    if [ ! -e "${base_dir}/bootable.img" ] ; then
-        fallocate -l 30G "${base_dir}/bootable.img"
+    if [ ! -e "${base_dir}/bootable.raw" ] ; then
+        fallocate -l 30G "${base_dir}/bootable.raw"
     fi
 
     just bootc install to-disk --composefs-backend \
-        --via-loopback /data/bootable.img \
+        --via-loopback /data/bootable.raw \
         --filesystem "${filesystem}" \
         --wipe \
         --bootloader systemd \
