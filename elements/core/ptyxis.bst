@@ -20,3 +20,8 @@ depends:
 - gnome-build-meta.bst:sdk/gtk.bst
 - gnome-build-meta.bst:sdk/libadwaita.bst
 - freedesktop-sdk.bst:public-stacks/runtime-minimal.bst
+
+# Changes the application to show "Console" instead of "Ptyxis"
+variables:
+  meson-local: >-
+    -Dgeneric=terminal
