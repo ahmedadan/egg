@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:repires/build-oci-rs.git
   track: main
-  ref: f338a43d60c2d54e372478eaa1e52aea8ca1693a
+  ref: e7316109fc25a4a4a7cc48f43aa328b00ecb4525
 
 - kind: cargo2
 
@@ -13,6 +13,14 @@ sources:
     name: adler2
     version: 2.0.1
     sha: 320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa
+  - kind: registry
+    name: ahash
+    version: 0.8.12
+    sha: 5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75
+  - kind: registry
+    name: allocator-api2
+    version: 0.2.21
+    sha: 683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923
   - kind: registry
     name: android_system_properties
     version: 0.1.5
@@ -78,6 +86,10 @@ sources:
     version: 1.5.0
     sha: 9481c1c90cbf2ac953f07c8d4a58aa3945c425b7185c9154d67a65e4230da511
   - kind: registry
+    name: crossbeam
+    version: 0.8.4
+    sha: 1137cd7e7fc0fb5d3c5a8678be38ec56e819125d8d7907411fe24ccb943faca8
+  - kind: registry
     name: crossbeam-channel
     version: 0.5.15
     sha: 82b8f8f868b36967f9606790d1903570de9ceaf870a7bf9fbbd3016d636a2cb2
@@ -90,6 +102,10 @@ sources:
     version: 0.9.18
     sha: 5b82ac4a3c2ca9c3460964f020e1402edd5753411d7737aa39c3714ad1b5420e
   - kind: registry
+    name: crossbeam-queue
+    version: 0.3.12
+    sha: 0f58bbc28f91df819d0aa2a2c00cd19754769c2fad90579b3592b1c9ba7a3115
+  - kind: registry
     name: crossbeam-utils
     version: 0.8.21
     sha: d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28
@@ -97,6 +113,10 @@ sources:
     name: crypto-common
     version: 0.1.7
     sha: 78c8292055d1c1df0cce5d180393dc8cce0abec0a7102adb6c7b1eef6016d60a
+  - kind: registry
+    name: dashmap
+    version: 6.1.0
+    sha: 5041cc499144891f3790297212f32a74fb938e5136a14943f338ef9e0ae276cf
   - kind: registry
     name: digest
     version: 0.10.7
@@ -159,6 +179,10 @@ sources:
     sha: e7c65d1899521a11810501b50b898464d133e1afc96703cff57726964cfa7baf
   - kind: registry
     name: hashbrown
+    version: 0.14.5
+    sha: e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1
+  - kind: registry
+    name: hashbrown
     version: 0.16.1
     sha: 841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100
   - kind: registry
@@ -182,9 +206,21 @@ sources:
     version: 1.0.17
     sha: 92ecc6618181def0457392ccd0ee51198e065e016d1d527a7ac1b6dc7c1f09d2
   - kind: registry
+    name: jobserver
+    version: 0.1.34
+    sha: 9afb3de4395d6b3e67a780b6de64b51c978ecf11cb9a462c66be7d4ca9039d33
+  - kind: registry
     name: js-sys
     version: 0.3.85
     sha: 8c942ebf8e95485ca0d52d97da7c5a2c387d0e7f0ba4c35e93bfcaee045955b3
+  - kind: registry
+    name: jwalk
+    version: 0.8.1
+    sha: 2735847566356cd2179a2a38264839308f7079fa96e6bd5a42d740460e003c56
+  - kind: registry
+    name: lasso
+    version: 0.7.3
+    sha: 6e14eda50a3494b3bf7b9ce51c52434a761e383d7238ce1dd5dcec2fbc13e9fb
   - kind: registry
     name: libc
     version: 0.2.180
@@ -201,6 +237,10 @@ sources:
     name: libredox
     version: 0.1.12
     sha: 3d0b95e02c851351f877147b7deea7b1afb1df71b63aa5f8270716e0c5720616
+  - kind: registry
+    name: libz-ng-sys
+    version: 1.1.23
+    sha: 7bf914b7dd154ca9193afec311d8e39345c1bd93b48b3faa77329f0db8f553c0
   - kind: registry
     name: libz-sys
     version: 1.1.23
@@ -246,6 +286,10 @@ sources:
     version: 1.21.3
     sha: 42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d
   - kind: registry
+    name: parking_lot_core
+    version: 0.9.12
+    sha: 2621685985a2ebf1c516881c026032ac7deafcda1a2c9b7850dc81e3dfcb64c1
+  - kind: registry
     name: pin-project
     version: 1.1.10
     sha: 677f1add503faace112b9f1373e43e9e054bfdd22ff1a63c1bc485eaec6a6a8a
@@ -279,8 +323,16 @@ sources:
     sha: 22e18b0f0062d30d4230b2e85ff77fdfe4326feb054b9783a3460d8435c8ab91
   - kind: registry
     name: redox_syscall
+    version: 0.5.18
+    sha: ed2bf2547551a7053d6fdfafda3f938979645c44812fbfcda098faae3f1a362d
+  - kind: registry
+    name: redox_syscall
     version: 0.7.0
     sha: 49f3fe0889e69e2ae9e41f4d6c4c0181701d00e4697b356fb1f74173a5e0ee27
+  - kind: registry
+    name: rustc-hash
+    version: 2.1.1
+    sha: 357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d
   - kind: registry
     name: rustix
     version: 1.1.3
@@ -322,6 +374,10 @@ sources:
     version: 0.10.9
     sha: a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283
   - kind: registry
+    name: sha2-asm
+    version: 0.6.4
+    sha: b845214d6175804686b2bd482bcffe96651bb2d1200742b712003504a2dac1ab
+  - kind: registry
     name: shlex
     version: 1.3.0
     sha: 0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64
@@ -329,6 +385,10 @@ sources:
     name: simd-adler32
     version: 0.3.8
     sha: e320a6c5ad31d271ad523dcf3ad13e2767ad8b1cb8f047f75a8aeaf8da139da2
+  - kind: registry
+    name: smallvec
+    version: 1.15.1
+    sha: 67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03
   - kind: registry
     name: spin
     version: 0.9.8
@@ -353,6 +413,14 @@ sources:
     name: thiserror-impl
     version: 1.0.69
     sha: 4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1
+  - kind: registry
+    name: tikv-jemalloc-sys
+    version: 0.5.4+5.3.0-patched
+    sha: 9402443cb8fd499b6f327e40565234ff34dbda27460c5b47db0db77443dd85d1
+  - kind: registry
+    name: tikv-jemallocator
+    version: 0.5.4
+    sha: 965fe0c26be5c56c94e38ba547249074803efd52adfb66de62107d95aab3eaca
   - kind: registry
     name: typenum
     version: 1.19.0
@@ -446,9 +514,29 @@ sources:
     version: 1.6.1
     sha: 32e45ad4206f6d2479085147f02bc2ef834ac85886624a23575ae137c8aa8156
   - kind: registry
+    name: zerocopy
+    version: 0.8.36
+    sha: dafd85c832c1b68bbb4ec0c72c7f6f4fc5179627d2bc7c26b30e4c0cc11e76cc
+  - kind: registry
+    name: zerocopy-derive
+    version: 0.8.36
+    sha: 7cb7e4e8436d9db52fbd6625dbf2f45243ab84994a72882ec8227b99e72b439a
+  - kind: registry
     name: zmij
     version: 1.0.17
     sha: 02aae0f83f69aafc94776e879363e9771d7ecbffe2c7fbb6c14c5e00dfe88439
+  - kind: registry
+    name: zstd
+    version: 0.13.3
+    sha: e91ee311a569c327171651566e07972200e76fcfe2242a4fa446149a3881c08a
+  - kind: registry
+    name: zstd-safe
+    version: 7.2.4
+    sha: 8f49c4d5f0abb602a93fb8736af2a4f4dd9512e36f7f570d66e65ff867ed3b9d
+  - kind: registry
+    name: zstd-sys
+    version: 2.0.16+zstd.1.5.7
+    sha: 91e19ebc2adc8f83e43039e79776e3fda8ca919132d68a1fed6a5faca2683748
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-make.bst
 - freedesktop-sdk.bst:components/gcc.bst

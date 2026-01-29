@@ -2,9 +2,9 @@ kind: junction
 
 sources:
 - kind: git_repo
-  url: gnome_gitlab:gnome/gnome-build-meta.git
+  url: gnome:/gnome-build-meta.git
   track: master
-  ref: 49-branchpoint-434-g6b451443aaabce42440ba4efc134a4743d6372d0
+  ref: 49-branchpoint-435-gd0a8984b46d1ccba366c844700c7e3209ad54339
 - kind: patch_queue
   path: patches/gnome-build-meta
 
