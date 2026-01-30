@@ -1,10 +1,10 @@
 kind: manual
 
 depends:
-- freedesktop-sdk.bst:public-stacks/runtime-minimal.bst
+  - freedesktop-sdk.bst:public-stacks/runtime-minimal.bst
 
 variables:
-  strip-binaries: ''
+  strip-binaries: ""
 
 environment:
   # FIXME: configurable
@@ -25,33 +25,33 @@ environment:
 
 config:
   build-commands:
-  - mkdir -p %{install-root}%{indep-libdir}/
-  - |
-    cat >"%{install-root}%{indep-libdir}/os-release" <<EOF
-    NAME="${IMAGE_PRETTY_NAME}"
-    ID="${ID}"
-    ID_LIKE="org.gnome.os"
-    VERSION="${IMAGE_TAG}"
-    VERSION_CODENAME="${CODE_NAME}"
-    PRETTY_NAME="${IMAGE_PRETTY_NAME}"
-    BUG_REPORT_URL="${BUG_SUPPORT_URL}"
-    HOME_URL="${HOME_URL}"
-    DOCUMENTATION_URL="${DOCUMENTATION_URL}"
-    SUPPORT_URL="${SUPPORT_URL}"
-    LOGO=img-logo-icon
-    DEFAULT_HOSTNAME="bluefin"
-    EOF
-    mkdir -p %{install-root}%{sysconfdir}/
-    ln -sf ../usr/lib/os-release %{install-root}%{sysconfdir}/os-release
+    - mkdir -p %{install-root}%{indep-libdir}/
+    - |
+      cat >"%{install-root}%{indep-libdir}/os-release" <<EOF
+      NAME="${IMAGE_PRETTY_NAME}"
+      ID="${ID}"
+      ID_LIKE="org.gnome.os"
+      VERSION="${IMAGE_TAG}"
+      VERSION_CODENAME="${CODE_NAME}"
+      PRETTY_NAME="${IMAGE_PRETTY_NAME}"
+      BUG_REPORT_URL="${BUG_SUPPORT_URL}"
+      HOME_URL="${HOME_URL}"
+      DOCUMENTATION_URL="${DOCUMENTATION_URL}"
+      SUPPORT_URL="${SUPPORT_URL}"
+      LOGO=img-logo-icon
+      DEFAULT_HOSTNAME="bluefin"
+      EOF
+      mkdir -p %{install-root}%{sysconfdir}/
+      ln -sf ../usr/lib/os-release %{install-root}%{sysconfdir}/os-release
 
-  - mkdir -p "%{install-root}%{datadir}/ublue-os"
-  - |
-    cat >"%{install-root}%{datadir}/ublue-os/image-info.json" <<EOF
-    {
-      "image-name": "${IMAGE_NAME}",
-      "image-ref": "${IMAGE_REF}",
-      "image-flavor": "${IMAGE_FLAVOR}",
-      "image-vendor": "${IMAGE_VENDOR}",
-      "image-tag": "${IMAGE_TAG}"
-    }
-    EOF
+    - mkdir -p "%{install-root}%{datadir}/ublue-os"
+    - |
+      cat >"%{install-root}%{datadir}/ublue-os/image-info.json" <<EOF
+      {
+        "image-name": "${IMAGE_NAME}",
+        "image-ref": "${IMAGE_REF}",
+        "image-flavor": "${IMAGE_FLAVOR}",
+        "image-vendor": "${IMAGE_VENDOR}",
+        "image-tag": "${IMAGE_TAG}"
+      }
+      EOF

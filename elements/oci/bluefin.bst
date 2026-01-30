@@ -23,38 +23,38 @@ variables:
 
 config:
   commands:
-  - mkdir /fakecap
-  - |
-    prepare-image.sh \
-       --sysroot /layer \
-       --initscripts /initial_scripts \
-       --seed "%{sysroot-seed}" \
-       --noroot --noboot >/dev/null
+    - mkdir /fakecap
+    - |
+      prepare-image.sh \
+         --sysroot /layer \
+         --initscripts /initial_scripts \
+         --seed "%{sysroot-seed}" \
+         --noroot --noboot >/dev/null
 
-  - |
-    systemd-sysusers --root /layer
+    - |
+      systemd-sysusers --root /layer
 
-  - |
-    glib-compile-schemas /layer/usr/share/glib-2.0/schemas
+    - |
+      glib-compile-schemas /layer/usr/share/glib-2.0/schemas
 
-  - |
-    cd "%{install-root}"
-    build-oci -j %{max-jobs} <<EOF
-    mode: oci
-    gzip: disabled
-    images:
-    - os: linux
-      architecture: "%{go-arch}"
-      parent:
-        image: /parent
-      layer: /layer
-      comment: "Import Bluefin layer"
-      config:
-        Labels:
-          'com.github.containers.toolbox': 'true'
-          'org.opencontainers.image.source': 'https://github.com/projectbluefin/egg/'
-          'org.opencontainers.image.url': 'https://github.com/projectbluefin/egg/'
-          'containers.bootc': '1'
-      index-annotations:
-        'org.opencontainers.image.ref.name': 'ghcr.io/projectbluefin/egg:latest'
-    EOF
+    - |
+      cd "%{install-root}"
+      build-oci -j %{max-jobs} <<EOF
+      mode: oci
+      gzip: disabled
+      images:
+      - os: linux
+        architecture: "%{go-arch}"
+        parent:
+          image: /parent
+        layer: /layer
+        comment: "Import Bluefin layer"
+        config:
+          Labels:
+            'com.github.containers.toolbox': 'true'
+            'org.opencontainers.image.source': 'https://github.com/projectbluefin/egg/'
+            'org.opencontainers.image.url': 'https://github.com/projectbluefin/egg/'
+            'containers.bootc': '1'
+        index-annotations:
+          'org.opencontainers.image.ref.name': 'ghcr.io/projectbluefin/egg:latest'
+      EOF
