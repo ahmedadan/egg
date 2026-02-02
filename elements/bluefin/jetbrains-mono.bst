@@ -20,8 +20,8 @@ variables:
 config:
   install-commands:
     - |
-      mkdir -p "%{fontdir}/JetBrains Mono"
+      mkdir -p "%{fontdir}/jetbrains-mono"
 
-      install -p -m0644 fonts/otf/*.otf "%{fontdir}/JetBrains Mono"
+      install -p -m0644 fonts/otf/*.otf "%{fontdir}/jetbrains-mono"
     - |
       %{install-extra}
