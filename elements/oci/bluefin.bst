@@ -2,8 +2,7 @@ kind: script
 
 build-depends:
   - gnome-build-meta.bst:freedesktop-sdk.bst:components/fakecap.bst
-  # - gnome-build-meta.bst:freedesktop-sdk.bst:components/oci-builder.bst
-  - core/build-oci-rs.bst
+  - gnome-build-meta.bst:freedesktop-sdk.bst:components/oci-builder.bst
   - freedesktop-sdk.bst:components/glib.bst
   - gnome-build-meta.bst:freedesktop-sdk.bst:vm/prepare-image.bst
   - oci/layers/bluefin-init-scripts.bst

@@ -18,7 +18,7 @@
 - `Justfile` -- Local dev targets: `build` (bst build + podman load), `build-containerfile`, `bootc`, `generate-bootable-image`
 - `Containerfile` -- Validation only: `FROM ghcr.io/projectbluefin/egg:latest` + `bootc container lint`
 - `elements/oci/bluefin.bst` -- Final OCI image element (the build target)
-- Build output is already a complete OCI image tar (built by `build-oci-rs` inside the BST pipeline)
+- Build output is already a complete OCI image tar (built by `oci-builder` from freedesktop-sdk inside the BST pipeline)
 - Existing workflow: `bst artifact checkout --tar - oci/bluefin.bst | podman load`
 - No `.gitmodules` file -- no git submodules in use
 

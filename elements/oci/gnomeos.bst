@@ -2,8 +2,7 @@ kind: script
 
 build-depends:
   - gnome-build-meta.bst:freedesktop-sdk.bst:components/fakecap.bst
-  # - freedesktop-sdk.bst:components/oci-builder.bst
-  - core/build-oci-rs.bst
+  - freedesktop-sdk.bst:components/oci-builder.bst
   - gnome-build-meta.bst:freedesktop-sdk.bst:vm/prepare-image.bst
   - gnome-build-meta.bst:oci/layers/gnomeos-init-scripts.bst
   - filename: gnome-build-meta.bst:oci/platform.bst
