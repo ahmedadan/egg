@@ -8,3 +8,6 @@
 *.img
 *.raw
 *.tar
+
+# Local AI agent state (opencode sessions, drafts)
+.opencode/
