@@ -355,7 +355,7 @@ show-me-the-future:
             render_tail "$logfile"
             render_separator
 
-            sleep 0.1
+            sleep 1
         done
 
         # Collect exit code
