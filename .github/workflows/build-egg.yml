@@ -16,7 +16,7 @@ env:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -126,6 +126,17 @@ jobs:
             cache-buildtrees: never
           BSTCONF
 
+          # If cache proxy is running, configure push-during-build
+          if [ -f /tmp/bazel-remote.pid ]; then
+            cat >> buildstream-ci.conf <<BSTPUSH
+          artifacts:
+            servers:
+              - url: "grpc://localhost:${CACHE_GRPC_PORT}"
+                push: true
+          BSTPUSH
+            echo "Configured incremental artifact push to localhost:${CACHE_GRPC_PORT}"
+          fi
+
       # ── BuildStream build ─────────────────────────────────────────────
       # Runs inside the bst2 container with:
       # - --privileged: required for bubblewrap sandboxing
@@ -164,11 +175,11 @@ jobs:
         timeout-minutes: 120
 
       # ── Push artifacts to remote cache ─────────────────────────────────
-      # Pushes all built artifacts (including transitive deps) so future
-      # builds can pull them.  Non-fatal: push failure must not fail the build.
+      # Safety net: ensures all artifacts are pushed even if incremental
+      # push-during-build missed some.  Non-fatal.
 
       - name: Push artifacts to remote cache
-        if: success()
+        if: always()
         continue-on-error: true
         run: |
           if [ ! -f /tmp/bazel-remote.pid ]; then
