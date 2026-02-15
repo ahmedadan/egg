@@ -10,6 +10,8 @@ depends:
 
   - bluefin/ghostty.bst
 
+  - bluefin/tailscale.bst
+
   - bluefin/common.bst
   - bluefin/wallpapers.bst
 
