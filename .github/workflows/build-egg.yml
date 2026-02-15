@@ -355,9 +355,11 @@ jobs:
 
       - name: Validate with bootc container lint
         run: |
+          # Use containers-storage: prefix to ensure we use the local image
+          # and don't try to pull from the registry
           podman run --rm --privileged \
             -v /var/lib/containers:/var/lib/containers \
-            "${{ steps.export.outputs.image_ref }}" \
+            "containers-storage:${{ steps.export.outputs.image_ref }}" \
             bootc container lint
 
       # ── Upload build logs ─────────────────────────────────────────────
