@@ -4,7 +4,7 @@ sources:
   - kind: git_repo
     url: github:eonpatapon/gnome-shell-extension-caffeine.git
     track: v*
-    ref: v59-0-gbe31208
+    ref: v59-0-gbe31208d8ab74cfae215354f242d8703ec3792a4
 
 build-depends:
   - freedesktop-sdk.bst:public-stacks/buildsystem-make.bst
