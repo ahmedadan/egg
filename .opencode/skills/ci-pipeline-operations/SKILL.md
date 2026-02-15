@@ -19,9 +19,8 @@ The CI pipeline (`.github/workflows/build-egg.yml`) builds the Bluefin OCI image
 | Build timeout | 120 minutes |
 | bst2 container | `registry.gitlab.com/.../bst2:<sha>` (pinned in workflow `env.BST2_IMAGE`) |
 | GNOME CAS endpoint | `gbm.gnome.org:11003` (gRPC, read-only) |
-| Cache strategy | Blacksmith sticky disks (NVMe-backed Ceph, ~3s mount, 7-day eviction) |
-| Sticky disk: CAS | `bst-cache` -> `~/.cache/buildstream` (CAS + artifacts + source_protos) |
-| Sticky disk: sources | `bst-sources` -> `~/.cache/buildstream-sources` (source tarballs) |
+| Cache strategy | Single Blacksmith sticky disk (NVMe-backed Ceph, ~3s mount, 7-day eviction) |
+| Sticky disk | `bst-cache` -> `~/.cache/buildstream` (CAS + artifacts + source_protos + sources) |
 | R2 role | Read-only cold preseed (bootstraps empty sticky disks) |
 | R2 bucket | `bst-cache` |
 | Published image | `ghcr.io/projectbluefin/egg:latest` and `:$SHA` |
@@ -34,20 +33,19 @@ The CI pipeline (`.github/workflows/build-egg.yml`) builds the Bluefin OCI image
 | 1 | Checkout | Clones the repo | Standard |
 | 2 | Pull bst2 image | `podman pull` of the pinned bst2 container | Same image as GNOME upstream CI |
 | 3 | Mount BST cache (sticky disk) | `useblacksmith/stickydisk@v1` mounts NVMe volume | Key: `${{ github.repository }}-bst-cache`; mounted at `~/.cache/buildstream` |
-| 4 | Mount BST sources (sticky disk) | `useblacksmith/stickydisk@v1` mounts NVMe volume | Key: `${{ github.repository }}-bst-sources`; mounted at `~/.cache/buildstream-sources` |
-| 5 | Prepare cache layout | `mkdir -p` subdirs, symlink sources dir | Ensures CAS/artifacts/source_protos dirs exist; symlinks `~/.cache/buildstream-sources` into `~/.cache/buildstream/sources/` |
-| 6 | Preseed CAS from R2 | Downloads `cas.tar.zst`, artifact refs, source protos from R2 | **Cold cache only** -- skips if sticky disk already has CAS objects; installs rclone on-demand |
-| 7 | Install just | `sudo apt-get install -y just` | Used by build and export steps |
-| 8 | Generate BST config | Writes `buildstream-ci.conf` with CI-tuned settings | No remote artifact server -- only local cache + upstream GNOME |
-| 9 | Build | `just bst --log-file /src/logs/build.log build oci/bluefin.bst` | `--privileged --device /dev/fuse`; no `--network=host` needed |
-| 10 | Cache and disk status | `df -h` + `du -sh` of cache components | Diagnostic; always runs |
-| 11 | Export OCI image | `just export` (checkout + skopeo load + bootc fixup) | Uses Justfile recipe |
-| 12 | Verify image loaded | `podman images` | Diagnostic |
-| 13 | bootc lint | `bootc container lint` on exported image | Validates ostree structure, no `/usr/etc`, valid bootc metadata |
-| 14 | Upload build logs | `actions/upload-artifact` | Always runs, even on failure |
-| 15 | Login to GHCR | `podman login` with `GITHUB_TOKEN` | **Main only** |
-| 16 | Tag for GHCR | Tags as `:latest` and `:$SHA` | **Main only** |
-| 17 | Push to GHCR | `podman push --retry 3` both tags | **Main only** |
+| 4 | Prepare cache layout | `mkdir -p` subdirs | Ensures CAS/artifacts/source_protos/sources dirs exist |
+| 5 | Preseed CAS from R2 | Downloads `cas.tar.zst`, artifact refs, source protos from R2 | **Cold cache only** -- skips if sticky disk already has CAS objects; installs rclone on-demand |
+| 6 | Install just | `sudo apt-get install -y just` | Used by build and export steps |
+| 7 | Generate BST config | Writes `buildstream-ci.conf` with CI-tuned settings | No remote artifact server -- only local cache + upstream GNOME |
+| 8 | Build | `just bst --log-file /src/logs/build.log build oci/bluefin.bst` | `--privileged --device /dev/fuse`; no `--network=host` needed |
+| 9 | Cache and disk status | `df -h` + `du -sh` of cache components | Diagnostic; always runs |
+| 10 | Export OCI image | `just export` (checkout + skopeo load + bootc fixup) | Uses Justfile recipe |
+| 11 | Verify image loaded | `podman images` | Diagnostic |
+| 12 | bootc lint | `bootc container lint` on exported image | Validates ostree structure, no `/usr/etc`, valid bootc metadata |
+| 13 | Upload build logs | `actions/upload-artifact` | Always runs, even on failure |
+| 14 | Login to GHCR | `podman login` with `GITHUB_TOKEN` | **Main only** |
+| 15 | Tag for GHCR | Tags as `:latest` and `:$SHA` | **Main only** |
+| 16 | Push to GHCR | `podman push --retry 3` both tags | **Main only** |
 
 ## CI BuildStream Config
 
@@ -71,8 +69,9 @@ Generated as `buildstream-ci.conf` at step 8. Values and rationale:
 Three layers, checked in order:
 
 ```
-1. Sticky disk cache (~/.cache/buildstream/ + ~/.cache/buildstream-sources/)
-   NVMe-backed Ceph volumes, persist across CI runs, ~3s mount
+1. Sticky disk cache (~/.cache/buildstream/)
+   Single NVMe-backed Ceph volume, persists across CI runs, ~3s mount
+   Contains: CAS objects, artifact refs, source protos, source tarballs
    |-- miss -->
 2. GNOME upstream CAS (https://gbm.gnome.org:11003)
    Read-only, configured in project.conf
@@ -82,18 +81,20 @@ Three layers, checked in order:
 
 ### Sticky Disk Details
 
-Blacksmith sticky disks are NVMe-backed Ceph volumes that persist across CI runs. They auto-commit on job end and are evicted after 7 days of inactivity.
+Blacksmith sticky disks are NVMe-backed Ceph volumes that persist across CI runs. They auto-commit on job end (regardless of job outcome -- even failed builds persist their cache progress) and are evicted after 7 days of inactivity.
+
+A single sticky disk holds the entire BuildStream cache:
 
 | Disk key | Mount point | Contains |
 |---|---|---|
-| `${{ github.repository }}-bst-cache` | `~/.cache/buildstream` | CAS objects, artifact refs, source protos |
-| `${{ github.repository }}-bst-sources` | `~/.cache/buildstream-sources` | Source tarballs (symlinked into `~/.cache/buildstream/sources/`) |
+| `${{ github.repository }}-bst-cache` | `~/.cache/buildstream` | CAS objects, artifact refs, source protos, source tarballs |
 
 **Key behaviors:**
 - **~3 second mount** -- negligible overhead vs. downloading a multi-GB cache archive
-- **Auto-commit on job end** -- all changes written during the job are persisted automatically, no explicit upload step
+- **Auto-commit on job end** -- all changes written during the job are persisted automatically, even if the build fails
 - **7-day eviction** -- disks unused for 7 days are reclaimed; the R2 preseed step handles cold recovery
 - **Per-repository isolation** -- disk keys include `github.repository`, so forks get separate disks
+- **Single volume inside container** -- the Justfile mounts `~/.cache/buildstream` at `/root/.cache/buildstream` inside the bst2 podman container; only this single volume is visible to BuildStream
 
 ### R2 Cold Preseed
 
@@ -111,10 +112,9 @@ R2 is used only for cold cache recovery (when sticky disks are empty). The prese
 
 | Layer | Configured in | Read | Write | Contains |
 |---|---|---|---|---|
-| Sticky disk (CAS) | `useblacksmith/stickydisk@v1` | Always | Always (auto-commit) | CAS objects, artifact refs, source protos |
-| Sticky disk (sources) | `useblacksmith/stickydisk@v1` | Always | Always (auto-commit) | Source tarballs (symlinked) |
+| Sticky disk | `useblacksmith/stickydisk@v1` | Always | Always (auto-commit) | CAS objects, artifact refs, source protos, source tarballs |
 | GNOME upstream | `project.conf` `artifacts:` section | Always | Never | freedesktop-sdk + gnome-build-meta artifacts |
-| R2 preseed | Workflow step (rclone, on-demand) | Cold cache only | Never | Bootstrap CAS snapshot |
+| R2 preseed | Workflow step (rclone, on-demand) | Cold cache only | Never | Bootstrap CAS snapshot (currently corrupt) |
 
 ## PR vs Main Differences
 
@@ -184,7 +184,7 @@ Note: `--network=host` is not needed since there is no local cache proxy. The bs
 
 ### Debugging Workflow
 
-1. **Check sticky disk mount**: In the `useblacksmith/stickydisk` step outputs, verify both disks mounted successfully. If mounting fails, it's a Blacksmith infra issue.
+1. **Check sticky disk mount**: In the `useblacksmith/stickydisk` step output, verify the disk mounted successfully. If mounting fails, it's a Blacksmith infra issue.
 
 2. **Check preseed status**: If the build is unexpectedly slow, check the "Preseed CAS from R2" step. If it ran, the sticky disk was cold. If it was skipped ("Sticky disk already warm"), the cache should have been populated.
 

@@ -134,30 +134,29 @@ Runs on `blacksmith-8vcpu-ubuntu-2404`. Triggers on push to main, PRs against ma
 1. Checkout repository
 2. Pull bst2 container image
 3. Mount BuildStream cache (sticky disk)
-4. Mount BuildStream sources (sticky disk)
-5. Prepare BuildStream cache layout (mkdir subdirs, symlink sources)
-6. Preseed CAS from R2 (cold cache only -- runs only when sticky disk is empty)
-7. Install just
-8. Generate CI-specific BuildStream config (`buildstream-ci.conf`)
-9. Build `oci/bluefin.bst` inside bst2 container
-10. Cache and disk status
-11. Export OCI image (`bst artifact checkout --tar - | podman load`)
-12. Verify image loaded
-13. Validate with `bootc container lint`
-14. Upload build logs
-15. Login to GHCR (main only)
-16. Tag image for GHCR (main only)
-17. Push to GHCR (main only)
+4. Prepare BuildStream cache layout (mkdir subdirs)
+5. Preseed CAS from R2 (cold cache only -- runs only when sticky disk is empty)
+6. Install just
+7. Generate CI-specific BuildStream config (`buildstream-ci.conf`)
+8. Build `oci/bluefin.bst` inside bst2 container
+9. Cache and disk status
+10. Export OCI image (`just export`)
+11. Verify image loaded
+12. Validate with `bootc container lint`
+13. Upload build logs
+14. Login to GHCR (main only)
+15. Tag image for GHCR (main only)
+16. Push to GHCR (main only)
 
 ### Artifact Caching
 
-Two layers of artifact caching, backed by Blacksmith sticky disks:
+Three layers of artifact caching:
 
-1. **Sticky disk cache** (NVMe-backed Ceph): Two persistent disks that survive across CI runs (~3s mount time, auto-commit on job end, 7-day eviction). `bst-cache` holds `~/.cache/buildstream` (CAS + artifacts + source_protos). `bst-sources` holds `~/.cache/buildstream-sources` (source tarballs, symlinked into buildstream/sources/).
+1. **Sticky disk cache** (NVMe-backed Ceph): A single persistent disk at `~/.cache/buildstream` that survives across CI runs (~3s mount time, auto-commit on job end, 7-day eviction). Contains CAS objects, artifact refs, source protos, and source tarballs -- everything BuildStream needs in one volume.
 
 2. **GNOME upstream** (`gbm.gnome.org:11003`): Read-only. Configured in `project.conf`. Contains artifacts for freedesktop-sdk and gnome-build-meta elements. Available to all builds.
 
-3. **R2 cold preseed** (Cloudflare R2, read-only): Used only when the sticky disk is empty (first run or after 7-day eviction). Installs rclone on-demand, downloads CAS archive and metadata refs, then never touches R2 again until the next cold start.
+3. **R2 cold preseed** (Cloudflare R2, read-only): Used only when the sticky disk is empty (first run or after 7-day eviction). Installs rclone on-demand, downloads CAS archive and metadata refs, then never touches R2 again until the next cold start. **Note:** The R2 `cas.tar.zst` is currently corrupt (93 bytes despite claiming 12.9 GB) -- cold starts build from scratch using GNOME upstream CAS.
 
 **Secrets** (configured on projectbluefin/egg, used only for R2 preseed):
 - `R2_ACCESS_KEY`: Cloudflare R2 access key ID

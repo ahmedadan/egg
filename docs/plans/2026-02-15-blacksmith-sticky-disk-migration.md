@@ -417,7 +417,26 @@ Revert the commit. R2 archive is untouched. `Testing` runner still exists. Zero 
 - Remove R2 secrets and rclone preseed entirely (after confirming sticky disk stability)
 - Delete `cas.tar.zst` from R2 bucket
 - Clean up stale `bazel-remote` references in docs
-- Consider single sticky disk if symlink causes issues
+
+---
+
+## Implementation Corrections
+
+These corrections were discovered during implementation and supersede the plan above:
+
+### Single Sticky Disk (not two)
+
+The plan originally called for two sticky disks (`bst-cache` + `bst-sources`) with a symlink bridging them. This failed on the first CI run because the symlink used an absolute host path (`/home/runner/.cache/buildstream-sources`) that doesn't exist inside the bst2 podman container (which only mounts `~/.cache/buildstream` at `/root/.cache/buildstream`). BuildStream's tar source plugin crashed with `FileNotFoundError: No such file or directory: '/root/.cache/buildstream/sources/tar'`.
+
+**Fix:** Simplified to a single sticky disk at `~/.cache/buildstream`. BuildStream creates `sources/` as a real subdirectory naturally. No symlink needed. The "Future Work" section already anticipated this: "Consider single sticky disk if symlink causes issues."
+
+### Runner upgraded to 8 vCPU
+
+Changed from `blacksmith-4vcpu-ubuntu-2404` to `blacksmith-8vcpu-ubuntu-2404` during implementation to provide more build capacity.
+
+### R2 cas.tar.zst is corrupt
+
+The R2 archive claims to be 12.9 GB but is actually a 93-byte file (likely an S3 error XML response). Rclone's multi-thread copy gets a 416 InvalidRange error. The preseed guard catches this ("Downloaded file is suspiciously small") and falls back to cold build. The 1,724 artifact refs in `r2:bst-cache/artifacts/` downloaded successfully but are useless without the CAS blobs they reference.
 
 ---
 
