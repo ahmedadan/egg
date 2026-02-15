@@ -11,6 +11,8 @@ All AI-assisted development is skill-driven. Skills (`.opencode/skills/`) are ve
 | Build target | `oci/bluefin.bst` |
 | End-to-end local test | `just show-me-the-future` |
 | Local build | `just build` |
+| Publish to local registry | `just publish` (requires `just registry-start`) |
+| Local OTA registry | `just registry-start` / `just registry-stop` (zot on port 5000) |
 | CI workflow | `.github/workflows/build-egg.yml` |
 | Published image | `ghcr.io/projectbluefin/egg:latest` |
 | Upstream repo | `github.com/projectbluefin/egg` |
@@ -74,6 +76,22 @@ just bst show oci/bluefin.bst  # Run any bst command inside the bst2 container
 ```
 
 All BuildStream commands run inside the official bst2 container image (same one CI uses), invoked automatically via podman. No native BuildStream installation needed. Requires: podman, ~50 GB free disk. For VM boot: QEMU + OVMF.
+
+### Local OTA Updates
+
+A local `zot` OCI registry enables pushing builds to running VMs as OTA updates, without leaving the network. The full dev loop:
+
+```bash
+just registry-start                    # Start local zot registry on port 5000
+just build                             # Build the image
+just publish                           # Push to local registry
+just generate-bootable-image           # Create bootable disk (first time)
+just boot-vm                           # Boot VM
+# Inside VM (one-time): sudo bootc switch --transport registry 10.0.2.2:5000/egg:latest
+# Iterate: edit -> just build -> just publish -> (in VM) sudo bootc upgrade
+```
+
+**Plan:** `docs/plans/2026-02-15-local-ota-registry.md` has the full design.
 
 **Skill:** Load `local-e2e-testing` for full prerequisites, troubleshooting, and environment variable reference.
 
