@@ -38,13 +38,13 @@ jobs:
         uses: ublue-os/remove-unwanted-software@695eb75bc387dbcd9685a8e72d23439d8686cba6
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Pull BuildStream container image
         run: podman pull "$BST2_IMAGE"
 
       - name: Cache BuildStream sources
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.cache/buildstream/sources
           key: bst-sources-${{ hashFiles('elements/**/*.bst', 'project.conf') }}
@@ -315,7 +315,7 @@ jobs:
 
       - name: Upload build logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: buildstream-logs
           path: logs/
@@ -326,7 +326,7 @@ jobs:
 
       - name: Upload cache proxy logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: bazel-remote-logs
           path: /tmp/bazel-remote.log

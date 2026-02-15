@@ -1,0 +1,123 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices"
+  ],
+
+  // Don't rebase PRs when main changes -- reduces churn
+  "rebaseWhen": "never",
+
+  "customManagers": [
+    // ── bst2 container image in CI workflow and Justfile ──
+    // Matches: BST2_IMAGE: registry.../bst2:<sha>
+    // Matches: bst2_image := env("BST2_IMAGE", "registry.../bst2:<sha>")
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/\\.github/workflows/build-egg\\.yml$/",
+        "/^Justfile$/"
+      ],
+      "matchStrings": [
+        "(?:BST2_IMAGE[\":]\\s*|bst2_image\\s*:=\\s*env\\(\"BST2_IMAGE\",\\s*\")(?<depName>registry\\.gitlab\\.com/freedesktop-sdk/infrastructure/freedesktop-sdk-docker-images/bst2):(?<currentValue>[a-f0-9]+)\"?"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "loose"
+    },
+
+    // ── bazel-remote binary download in CI workflow ──
+    // Matches the download URL and SHA256 checksum as a pair
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/\\.github/workflows/build-egg\\.yml$/"
+      ],
+      "matchStrings": [
+        "https://github\\.com/(?<depName>buchgr/bazel-remote)/releases/download/v(?<currentValue>\\d+\\.\\d+\\.\\d+)/bazel-remote-[\\d.]+-linux-amd64\"\\n\\s+echo \"(?<currentDigest>[a-f0-9]{64})"
+      ],
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+
+    // ── BuildStream plugin tarballs from PyPI ──
+    // Matches: url: pypi:<hash-path>/buildstream-plugins-<version>.tar.gz
+    //          ref: <sha256>
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/elements/plugins/.*\\.bst$/"
+      ],
+      "matchStrings": [
+        "url:\\s*pypi:[a-f0-9/]+/(?<depName>buildstream[-_]plugins(?:[-_]community)?)-(?<currentValue>\\d+\\.\\d+\\.\\d+)\\.tar\\.gz\\n\\s+ref:\\s*(?<currentDigest>[a-f0-9]{64})"
+      ],
+      "datasourceTemplate": "pypi",
+      "versioningTemplate": "pep440"
+    },
+
+    // ── Nerd Fonts GitHub release tarball ──
+    // Matches: url: github_files:ryanoasis/nerd-fonts/releases/download/v<version>/JetBrainsMono.tar.xz
+    //          ref: <sha256>
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/elements/bluefin/jetbrains-mono-nerd-font\\.bst$/"
+      ],
+      "matchStrings": [
+        "url:\\s*github_files:(?<depName>ryanoasis/nerd-fonts)/releases/download/v(?<currentValue>\\d+\\.\\d+\\.\\d+)/JetBrainsMono\\.tar\\.xz\\n\\s+ref:\\s*(?<currentDigest>[a-f0-9]{64})"
+      ],
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    }
+  ],
+
+  "packageRules": [
+    // ── Auto-merge: all pin and digest updates ──
+    {
+      "automerge": true,
+      "matchUpdateTypes": ["pin", "pinDigest", "digest"]
+    },
+
+    // ── Auto-merge: patch updates for CI tooling ──
+    {
+      "automerge": true,
+      "matchUpdateTypes": ["patch"],
+      "matchDepNames": [
+        "buchgr/bazel-remote",
+        "actions/checkout",
+        "actions/cache",
+        "actions/upload-artifact",
+        "ublue-os/remove-unwanted-software"
+      ]
+    },
+
+    // ── Manual merge: BuildStream plugins (always review) ──
+    {
+      "automerge": false,
+      "groupName": "BuildStream plugins",
+      "matchDepNames": [
+        "buildstream-plugins",
+        "buildstream-plugins-community",
+        "buildstream_plugins_community"
+      ]
+    },
+
+    // ── Manual merge: nerd-fonts (always review) ──
+    {
+      "automerge": false,
+      "matchDepNames": ["ryanoasis/nerd-fonts"]
+    },
+
+    // ── Group: all GitHub Actions together ──
+    {
+      "groupName": "GitHub Actions",
+      "matchManagers": ["github-actions"]
+    },
+
+    // ── bst2 image: group workflow + Justfile updates ──
+    {
+      "groupName": "bst2 container image",
+      "matchDepNames": [
+        "registry.gitlab.com/freedesktop-sdk/infrastructure/freedesktop-sdk-docker-images/bst2"
+      ]
+    }
+  ]
+}

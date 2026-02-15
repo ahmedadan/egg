@@ -1,0 +1,286 @@
+name: Track BuildStream Sources
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      group:
+        description: 'Which element group to track'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - auto-merge
+          - manual-merge
+          - tarballs
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  BST2_IMAGE: registry.gitlab.com/freedesktop-sdk/infrastructure/freedesktop-sdk-docker-images/bst2:f89b4aef847ef040b345acceda15a850219eb8f1
+
+jobs:
+  track:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: auto-merge
+            branch: auto/track-bluefin-sources
+            title: "chore(deps): track Bluefin element sources"
+            auto_merge: true
+            elements: >-
+              elements/bluefin/brew.bst
+              elements/bluefin/common.bst
+              elements/bluefin/jetbrains-mono.bst
+              elements/bluefin/shell-extensions/app-indicators.bst
+              elements/bluefin/shell-extensions/blur-my-shell.bst
+              elements/bluefin/shell-extensions/dash-to-dock.bst
+              elements/bluefin/shell-extensions/gsconnect.bst
+              elements/bluefin/shell-extensions/search-light.bst
+              elements/bluefin/shell-extensions/logomenu.bst
+              elements/core/build-oci-rs.bst
+          - group: manual-merge
+            branch: auto/track-core-sources
+            title: "chore(deps): track core and junction sources"
+            auto_merge: false
+            elements: >-
+              elements/gnome-build-meta.bst
+              elements/freedesktop-sdk.bst
+              elements/core/bootc.bst
+              elements/core/grub.bst
+              elements/core/ptyxis.bst
+              elements/core/efibootmgr.bst
+
+    steps:
+      - name: Should this group run?
+        id: gate
+        run: |
+          GROUP="${{ github.event.inputs.group || 'all' }}"
+          if [ "$GROUP" = "all" ] || [ "$GROUP" = "${{ matrix.group }}" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout repository
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull BuildStream container image
+        if: steps.gate.outputs.run == 'true'
+        run: podman pull "$BST2_IMAGE"
+
+      - name: Prepare BuildStream cache directory
+        if: steps.gate.outputs.run == 'true'
+        run: mkdir -p "$HOME/.cache/buildstream/sources"
+
+      - name: Track sources with BuildStream
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          podman run --rm \
+            --privileged \
+            --device /dev/fuse \
+            -v "${{ github.workspace }}:/src:rw" \
+            -v "$HOME/.cache/buildstream:/root/.cache/buildstream:rw" \
+            -w /src \
+            "$BST2_IMAGE" \
+            bash -c '
+              ulimit -n 1048576 || true
+
+              ELEMENTS="${{ matrix.elements }}"
+              echo "=== Tracking sources for: ==="
+              echo "$ELEMENTS" | tr " " "\n"
+              echo ""
+
+              FAILED=""
+              for el in $ELEMENTS; do
+                echo "--- Tracking: $el ---"
+                if bst --no-interactive source track "$el" 2>&1; then
+                  echo "OK: $el"
+                else
+                  echo "FAILED: $el"
+                  FAILED="$FAILED $el"
+                fi
+              done
+
+              if [ -n "$FAILED" ]; then
+                echo ""
+                echo "::warning::Some elements failed to track:$FAILED"
+              fi
+            '
+
+      - name: Check for changes
+        if: steps.gate.outputs.run == 'true'
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No changes detected"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Changes detected:"
+            git diff --stat
+          fi
+
+      - name: Create PR
+        if: steps.gate.outputs.run == 'true' && steps.changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="${{ matrix.branch }}"
+          TITLE="${{ matrix.title }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -B "$BRANCH"
+          git add elements/
+          git commit -m "$TITLE"
+          git push --force-with-lease origin "$BRANCH"
+
+          # Close existing PR for this branch if any
+          EXISTING_PR=$(gh pr list --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "$EXISTING_PR" ]; then
+            echo "Closing existing PR #$EXISTING_PR"
+            gh pr close "$EXISTING_PR" --delete-branch=false || true
+          fi
+
+          # Create the PR
+          PR_URL=$(gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "$TITLE" \
+            --body "$(cat <<'EOF'
+          ## BuildStream Source Tracking
+
+          Automated update via `bst source track`. Updates element refs to
+          latest commits matching their configured `track:` patterns.
+
+          **Group:** ${{ matrix.group }}
+
+          ---
+          *Generated by [Track BuildStream Sources](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+          EOF
+          )")
+
+          echo "Created PR: $PR_URL"
+
+          # Enable auto-merge if configured
+          if [ "${{ matrix.auto_merge }}" = "true" ]; then
+            echo "Enabling auto-merge..."
+            gh pr merge "$PR_URL" --auto --squash || echo "::warning::Could not enable auto-merge"
+          fi
+
+  track-tarballs:
+    runs-on: ubuntu-24.04
+    if: >-
+      github.event.inputs.group == 'all' ||
+      github.event.inputs.group == 'tarballs' ||
+      github.event_name == 'schedule'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for tarball updates
+        id: tarballs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CHANGED=false
+
+          # ── brew-tarball: ublue-os/packages homebrew releases ──
+          echo "=== Checking brew-tarball ==="
+          BREW_RELEASE=$(gh api repos/ublue-os/packages/releases \
+            --jq '[.[] | select(.tag_name | startswith("homebrew-"))][0].tag_name')
+          echo "Latest brew release: $BREW_RELEASE"
+
+          BST_FILE="elements/bluefin/brew-tarball.bst"
+          CURRENT_TAG=$(grep -oP 'download/\K[^/]+' "$BST_FILE")
+          echo "Current tag: $CURRENT_TAG"
+
+          if [ "$BREW_RELEASE" != "$CURRENT_TAG" ]; then
+            echo "Brew tarball needs update: $CURRENT_TAG -> $BREW_RELEASE"
+            NEW_URL="https://github.com/ublue-os/packages/releases/download/${BREW_RELEASE}/homebrew-x86_64.tar.zst"
+            NEW_SHA=$(curl -fsSL "$NEW_URL" | sha256sum | cut -d' ' -f1)
+            echo "New SHA256: $NEW_SHA"
+            sed -i "s|download/${CURRENT_TAG}/|download/${BREW_RELEASE}/|" "$BST_FILE"
+            sed -i "s|ref: [a-f0-9]\{64\}|ref: ${NEW_SHA}|" "$BST_FILE"
+            CHANGED=true
+          fi
+
+          # ── wallpapers: ublue-os/artwork bluefin releases ──
+          echo ""
+          echo "=== Checking wallpapers ==="
+          WALL_RELEASE=$(gh api repos/ublue-os/artwork/releases \
+            --jq '[.[] | select(.tag_name | startswith("bluefin-"))][0].tag_name')
+          echo "Latest wallpaper release: $WALL_RELEASE"
+
+          BST_FILE="elements/bluefin/wallpapers.bst"
+          CURRENT_TAG=$(grep -oP 'download/\K[^/]+' "$BST_FILE")
+          echo "Current tag: $CURRENT_TAG"
+
+          if [ "$WALL_RELEASE" != "$CURRENT_TAG" ]; then
+            echo "Wallpapers need update: $CURRENT_TAG -> $WALL_RELEASE"
+            NEW_URL="https://github.com/ublue-os/artwork/releases/download/${WALL_RELEASE}/bluefin-wallpapers-gnome.tar.zstd"
+            NEW_SHA=$(curl -fsSL "$NEW_URL" | sha256sum | cut -d' ' -f1)
+            echo "New SHA256: $NEW_SHA"
+            sed -i "s|download/${CURRENT_TAG}/|download/${WALL_RELEASE}/|" "$BST_FILE"
+            sed -i "s|ref: [a-f0-9]\{64\}|ref: ${NEW_SHA}|" "$BST_FILE"
+            CHANGED=true
+          fi
+
+          echo "has_changes=$CHANGED" >> "$GITHUB_OUTPUT"
+
+      - name: Create tarball update PR
+        if: steps.tarballs.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="auto/track-tarball-sources"
+          TITLE="chore(deps): update tarball sources"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -B "$BRANCH"
+          git add elements/
+          git commit -m "$TITLE"
+          git push --force-with-lease origin "$BRANCH"
+
+          EXISTING_PR=$(gh pr list --head "$BRANCH" --json number \
+            --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "$EXISTING_PR" ]; then
+            gh pr close "$EXISTING_PR" --delete-branch=false || true
+          fi
+
+          PR_URL=$(gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "$TITLE" \
+            --body "$(cat <<'EOF'
+          ## Tarball Source Updates
+
+          Automated check for new releases of tarball-sourced dependencies.
+
+          ### Checked sources
+          - `elements/bluefin/brew-tarball.bst` -- ublue-os/packages
+          - `elements/bluefin/wallpapers.bst` -- ublue-os/artwork
+
+          ---
+          *Generated by [Track BuildStream Sources](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+          EOF
+          )")
+
+          echo "Created PR: $PR_URL"
