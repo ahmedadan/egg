@@ -19,10 +19,11 @@ variables:
   strip-binaries: ""
 
 config:
-  install-commands:
+  build-commands:
     - |
       %{make} build
-
+  install-commands:
+    - |
       _uuid="$(jq -r .uuid "caffeine@patapon.info/metadata.json")"
       install -d "%{install-root}/usr/share/gnome-shell/extensions/${_uuid}"
       bsdtar xvf "${_uuid}.zip" \

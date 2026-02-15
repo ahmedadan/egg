@@ -163,11 +163,11 @@ config:
 
 ## Other Examples
 
-**Zig SDK** (`bluefin/zig.bst`): The Zig compiler is downloaded as a pre-built tarball and used as a build dependency for Zig projects like Ghostty. It follows the same pattern — `kind: manual`, `strip-binaries: ""`, tar source with SHA256 ref. It's a bootstrap compiler, not a runtime package.
+**Zig SDK**: When packaging Zig projects, the Zig compiler is downloaded as a pre-built tarball and used as a build dependency. It follows the same pattern -- `kind: manual`, `strip-binaries: ""`, tar source with SHA256 ref. It's a bootstrap compiler, not a runtime package. See the `packaging-zig-projects` skill for the full workflow.
 
 ## Dependency Tracking
 
-Pre-built binaries like Tailscale and Zig are **NOT tracked by any automated dependency update mechanism** (Renovate, `bst source track`, etc.). Updates are entirely manual:
+Pre-built binaries like Tailscale are **NOT tracked by any automated dependency update mechanism** (Renovate, `bst source track`, etc.). Updates are entirely manual:
 
 1. Check upstream for a new release
 2. Bump the version in the source URL

@@ -45,7 +45,7 @@ Quick-reference for authoring `.bst` elements in the bluefin-egg project. Look u
 |-------------|----------|---------|
 | `git_repo` | Most elements | brew, common, jetbrains-mono |
 | `tar` | Release tarballs | tailscale-x86_64, wallpapers |
-| `remote` | Single file download (not extracted) | brew-tarball, ghostty deps. Use `directory:` to place into a subdirectory (critical for Zig offline builds) |
+| `remote` | Single file download (not extracted) | brew-tarball. Use `directory:` to place into a subdirectory (critical for Zig offline builds) |
 | `local` | Files from repo's `files/` directory | plymouth-bluefin-theme |
 | `cargo2` | Rust crate vendoring | bootc, just. Generate with `files/scripts/generate_cargo_sources.py` from Cargo.lock |
 | `go_module` | Go module deps (one per dep) | git-lfs (in freedesktop-sdk) |
@@ -84,7 +84,7 @@ Each per-arch element has its own source URL with the hardcoded architecture str
 
 ## Zig Build Pattern
 
-Zig projects use `kind: manual` with custom `zig build` commands and many `remote` sources with `directory:` for offline dependency resolution. See the `packaging-zig-projects` skill for the complete workflow.
+Zig projects use `kind: manual` with custom `zig build` commands and many `remote` sources with `directory:` for offline dependency resolution. See the `packaging-zig-projects` skill for the complete workflow. Note: No Zig elements currently exist in the build; the skill is preserved for future use.
 
 ## Layer Chain
 
@@ -130,7 +130,5 @@ Defined in `include/aliases.yml`. Key aliases for Bluefin elements:
 | `github:` | `https://github.com/` | git sources |
 | `github_files:` | `https://github.com/` | tarballs, release downloads |
 | `gnome:` | `https://gitlab.gnome.org/GNOME/` | GNOME git sources |
-| `ghostty_deps:` | `https://deps.files.ghostty.org/` | Ghostty dependency files |
-| `ghostty_releases:` | `https://release.files.ghostty.org/` | Ghostty release tarballs |
 
 **Important:** Variable substitution (`%{go-arch}`, etc.) does NOT work in source URLs. Use the multi-arch dispatcher pattern instead.

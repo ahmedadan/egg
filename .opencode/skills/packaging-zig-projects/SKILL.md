@@ -17,7 +17,7 @@ Zig projects require offline dependency caching because BuildStream's bubblewrap
 
 ## Prerequisites
 
-A pre-built Zig SDK must exist as a build dependency. In this project: `bluefin/zig.bst` (a `manual` element installing the Zig binary + stdlib from an official tarball).
+A pre-built Zig SDK must exist as a build dependency. Create a `manual` element installing the Zig binary + stdlib from an official tarball (e.g., `bluefin/zig.bst`).
 
 ## Source Structure
 
@@ -202,7 +202,7 @@ config:
 
 ## Dependency Tracking
 
-Zig elements (Ghostty, Zig SDK) are **NOT tracked by any automation**. Updates are manual:
+Zig elements are **NOT tracked by any automation**. Updates are manual:
 1. Bump version in source URL and update `ref:` (SHA256)
 2. Update all dependency source entries (URLs and refs change with each release)
 3. Update git dep hashes in `place_git_dep()` calls
@@ -225,4 +225,4 @@ This is a known gap — future Renovate custom managers may automate parts of th
 
 ## Real Example
 
-See `elements/bluefin/ghostty.bst` (285 lines) — packages Ghostty 1.2.3 with 32 HTTP deps and 3 git deps. The Zig SDK element is `elements/bluefin/zig.bst` (19 lines).
+No Zig elements currently exist in the build. The template above and this skill are preserved for future use when a Zig project is added. When that happens, create a `zig.bst` element for the Zig SDK and add the project element following the template pattern.
