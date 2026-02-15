@@ -102,50 +102,55 @@ jobs:
           echo ""
           echo "=== Restoring CAS from R2 (tar+zstd) ==="
           CAS_RESTORED=false
-          if rclone lsf "r2:${R2_BUCKET}/cas.tar.zst" 2>&1; then
-            # Get file size for reporting
-            CAS_REMOTE_SIZE=$(rclone size --json "r2:${R2_BUCKET}/cas.tar.zst" 2>/dev/null | jq -r '.bytes // 0')
+          TEMP_DIR=$(mktemp -d /tmp/r2-restore.XXXXXX)
+          CAS_REMOTE_SIZE=$(rclone size --json "r2:${R2_BUCKET}/cas.tar.zst" 2>/dev/null | jq -r '.bytes // 0')
+          if [ "${CAS_REMOTE_SIZE:-0}" -gt 0 ]; then
             echo "Remote cas.tar.zst size: $((CAS_REMOTE_SIZE / 1048576)) MB"
             
-            # Download and validate tar+zstd stream
-            # Use temporary file to validate before extracting
-            TEMP_CAS="/tmp/cas.tar.zst"
-            echo "Downloading cas.tar.zst..."
-            if rclone copy "r2:${R2_BUCKET}/cas.tar.zst" /tmp/ --s3-no-head-object --progress 2>&1; then
-              echo "Validating archive integrity..."
-              if zstd -t "$TEMP_CAS" 2>&1; then
-                echo "Archive validation passed, extracting..."
-                if zstd -d "$TEMP_CAS" | tar xf - -C "${BST_CACHE}/"; then
-                  CAS_RESTORED=true
-                  echo "✓ CAS restore completed in $(( SECONDS - RESTORE_START ))s"
-                else
-                  echo "::warning::CAS tar extraction failed (corrupted archive)"
-                fi
+            # Download to dedicated temp directory, then validate before extracting
+            TEMP_CAS="${TEMP_DIR}/cas.tar.zst"
+            echo "Downloading cas.tar.zst (${CAS_REMOTE_SIZE} bytes = $((CAS_REMOTE_SIZE / 1048576)) MB)..."
+            if rclone copyto "r2:${R2_BUCKET}/cas.tar.zst" "${TEMP_CAS}" --progress 2>&1; then
+              # Verify the file actually landed on disk (rclone can exit 0 with 0 bytes)
+              ACTUAL_SIZE=$(stat --format=%s "${TEMP_CAS}" 2>/dev/null || echo 0)
+              if [ ! -f "${TEMP_CAS}" ]; then
+                echo "::warning::rclone reported success but no file was written"
+              elif [ "$ACTUAL_SIZE" -lt 1000 ]; then
+                echo "::warning::Downloaded file is suspiciously small (${ACTUAL_SIZE} bytes vs expected ${CAS_REMOTE_SIZE})"
               else
-                echo "::warning::CAS archive validation failed (corrupted zstd)"
-                echo "Deleting corrupted cache file from R2..."
-                rclone delete "r2:${R2_BUCKET}/cas.tar.zst" 2>&1 || true
+                echo "Downloaded ${ACTUAL_SIZE} bytes (expected ${CAS_REMOTE_SIZE})"
+                echo "Validating archive integrity..."
+                if zstd -t "$TEMP_CAS" 2>&1; then
+                  echo "Archive validation passed, extracting..."
+                  if zstd -d "$TEMP_CAS" | tar xf - -C "${BST_CACHE}/"; then
+                    CAS_RESTORED=true
+                    echo "CAS restore completed in $(( SECONDS - RESTORE_START ))s"
+                  else
+                    echo "::warning::CAS tar extraction failed (corrupted archive)"
+                  fi
+                else
+                  echo "::warning::CAS archive validation failed — skipping (will not delete from R2)"
+                  echo "::warning::Archive may need investigation; next successful build will overwrite it"
+                fi
               fi
-              rm -f "$TEMP_CAS"
             else
               echo "::warning::CAS download failed"
             fi
           else
-            echo "No cas.tar.zst found in R2, skipping CAS restore"
+            echo "No cas.tar.zst found in R2 (or file is empty), skipping CAS restore"
           fi
+          rm -rf "${TEMP_DIR}"
 
           echo ""
           echo "=== Restoring artifact refs from R2 ==="
           rclone copy "r2:${R2_BUCKET}/artifacts/" "${BST_CACHE}/artifacts/" \
             --size-only --transfers=16 --fast-list \
-            --s3-no-head-object --s3-no-system-metadata \
             -v || echo "::warning::Artifact refs restore failed (non-fatal)"
 
           echo ""
           echo "=== Restoring source protos from R2 ==="
           rclone copy "r2:${R2_BUCKET}/source_protos/" "${BST_CACHE}/source_protos/" \
             --size-only --transfers=16 --fast-list \
-            --s3-no-head-object --s3-no-system-metadata \
             -v || echo "::warning::Source protos restore failed (non-fatal)"
 
           echo ""
@@ -170,11 +175,11 @@ jobs:
           echo ""
           
           if [ "$CAS_RESTORED" = "true" ]; then
-            echo "Cache Status: ✓ RESTORED (CAS validated and extracted)"
+            echo "Cache Status: RESTORED (CAS validated and extracted)"
           elif [ "$CAS_AFTER" -lt 10485760 ]; then
-            echo "Cache Status: ✗ EMPTY (cold build, will fetch from upstream)"
+            echo "Cache Status: EMPTY (cold build, will fetch from upstream)"
           else
-            echo "Cache Status: ⚠ PARTIAL (CAS restore failed, using previous cache)"
+            echo "Cache Status: PARTIAL (CAS restore failed, using previous cache)"
           fi
           
           echo ""
