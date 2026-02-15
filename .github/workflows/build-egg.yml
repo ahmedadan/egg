@@ -58,14 +58,11 @@ jobs:
           curl -fsSL https://rclone.org/install.sh | sudo bash
           rclone version
 
-      - name: Install just and skopeo
+      - name: Install just
         run: |
-          # just — used by Justfile recipes (build, export)
-          curl -fsSL https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+          # just is in ubuntu 24.04 universe; skopeo/podman are pre-installed
+          sudo apt-get install -y just
           just --version
-          # skopeo — used by export recipe to load OCI images into podman
-          apt-get update -qq && apt-get install -y -qq skopeo >/dev/null
-          skopeo --version
 
       - name: Restore BuildStream cache from R2
         env:
