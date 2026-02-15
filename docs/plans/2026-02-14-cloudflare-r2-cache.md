@@ -1,6 +1,8 @@
 # Cloudflare R2 Cache for BuildStream
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **Status: IMPLEMENTED** -- All 4 tasks complete. Corrections discovered during implementation are documented inline below (bazel-remote v2.6.1, `--s3.auth_method=access_key`, HTTP health check on port 8080, separate `bst artifact push` command, bucket name `bst-cache`). The actual workflow also includes steps not in this plan: upstream artifact seeding, separate push step, cache proxy stats check.
+
+> **For agents:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Add a Cloudflare R2-backed artifact cache to the existing BuildStream CI pipeline so builds can push/pull artifacts globally, dramatically reducing rebuild times.
 

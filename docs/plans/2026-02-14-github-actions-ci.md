@@ -1,6 +1,8 @@
 # GitHub Actions CI for bluefin-egg Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **Status: IMPLEMENTED (SUPERSEDED)** -- The workflow exists at `.github/workflows/build-egg.yml` and is more advanced than this plan. Actual implementation includes: R2 artifact cache (see `2026-02-14-cloudflare-r2-cache.md`), daily source tracking (`track-bst-sources.yml`), SHA-pinned actions, separate `bst artifact push` step, source cache seeding from upstream, and Renovate for dependency updates.
+
+> **For agents:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Build the bluefin-egg GNOME OS OCI image in GitHub Actions CI using BuildStream, validate it with `bootc container lint`, and publish it to GHCR.
 

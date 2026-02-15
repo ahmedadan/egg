@@ -2,7 +2,7 @@
 
 This repository builds **Bluefin** -- a custom GNOME-based Linux desktop image -- using [BuildStream 2](https://buildstream.build/). The output is a [bootc](https://containers.github.io/bootc/)-compatible OCI container image published to `ghcr.io/projectbluefin/egg`.
 
-All AI-assisted development uses the [superpowers](https://github.com/jchook/superpowers) skill system.
+All AI-assisted development is skill-driven. Skills (`.opencode/skills/`) are vendored in-repo and are the primary mechanism for institutional memory. Agents MUST load and follow relevant skills before acting, and MUST create or update skills whenever they discover automatable patterns.
 
 ## Quick Reference
 
@@ -16,7 +16,7 @@ All AI-assisted development uses the [superpowers](https://github.com/jchook/sup
 | Upstream repo | `github.com/projectbluefin/egg` |
 | Implementation plans | `docs/plans/` |
 | BuildStream project config | `project.conf` |
-| Local testing skill | `.opencode/skills/local-e2e-testing/` |
+| Skills (vendored) | `.opencode/skills/` |
 
 ## What This Project Is
 
@@ -195,6 +195,7 @@ All agents MUST load and follow these skills before acting:
 | `using-superpowers` | Start of every session |
 | `brainstorming` | Before any creative/feature work |
 | `writing-plans` | Before any multi-step implementation |
+| `writing-skills` | When creating or updating skills |
 | `executing-plans` | When implementing from a plan in a separate session |
 | `subagent-driven-development` | When implementing from a plan in the current session |
 | `test-driven-development` | Before writing implementation code |
@@ -204,6 +205,42 @@ All agents MUST load and follow these skills before acting:
 | `requesting-code-review` | After completing major features |
 | `receiving-code-review` | When processing review feedback |
 | `using-git-worktrees` | When starting isolated feature work |
+| `dispatching-parallel-agents` | When facing 2+ independent tasks |
+
+Skills are vendored at `.opencode/skills/` and auto-discovered by the agent runtime. Load them with the `Skill` tool by name (e.g., `brainstorming`, `writing-plans`).
+
+### Skill Maintenance -- The Agentic Feedback Loop
+
+**Skills are living documents. Every agent session is an opportunity to improve them.**
+
+This project is designed around an agentic feedback loop: agents do work, learn things, and encode that learning into skills so future agents start from a higher baseline. Skills are institutional memory that compounds over time.
+
+**Mandatory behaviors:**
+
+1. **Create skills** when you discover a pattern, workflow, or technique that isn't obvious and would benefit future agents. If you had to figure something out, write a skill so the next agent doesn't have to.
+
+2. **Update skills** when you find existing guidance insufficient, incorrect, or incomplete. If a skill told you to do X but you had to do Y, update the skill.
+
+3. **Evaluate skill opportunities** at the end of every plan execution. Ask: "What did I learn that should be a skill?" Common candidates:
+   - Build system patterns (how to add elements, debug failures, patch upstream)
+   - CI/CD patterns (workflow debugging, cache management)
+   - Package-specific build knowledge (Zig, Rust, Meson quirks)
+   - Troubleshooting runbooks (boot failures, sandbox issues)
+
+4. **Follow the writing-skills skill** when creating or updating skills. It defines the TDD-based process: baseline test, write skill, verify improvement, close loopholes.
+
+5. **Skills over AGENTS.md** for detailed procedural knowledge. AGENTS.md is the overview and index. Skills contain the deep how-to. Don't bloat AGENTS.md with information that belongs in a skill.
+
+**What makes a good skill:**
+- Reusable across sessions (not a one-off fix)
+- Non-obvious (you wouldn't know this without experience)
+- Actionable (tells you what to do, not just what to know)
+- Discoverable (good name, good description with "Use when..." triggers)
+
+**What does NOT need a skill:**
+- Project-specific constants (put in AGENTS.md or project.conf)
+- One-time setup instructions (put in a plan)
+- Standard practices documented upstream (link to docs instead)
 
 ### Planning Workflow
 
@@ -214,6 +251,7 @@ All non-trivial work follows:
 3. **Execute the plan** -- Task by task, with review checkpoints
 4. **Verify** -- Run builds/tests, confirm success with evidence
 5. **Finish** -- PR or merge via the finishing skill
+6. **Create/update skills** -- Encode what you learned
 
 Plans are the source of truth for what was decided and why. They include corrections discovered during implementation. Always read existing plans in `docs/plans/` before starting related work.
 

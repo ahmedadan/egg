@@ -1,6 +1,8 @@
 # Local End-to-End Testing Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **Status: IMPLEMENTED** -- All 5 tasks complete. Justfile refactored, .gitignore updated, skill created at `.opencode/skills/local-e2e-testing/`, AGENTS.md updated, `just --list` verified.
+
+> **For agents:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Enable developers and agents to build the egg OCI image, install it to a bootable disk, and launch it in a QEMU VM with a single `just show-me-the-future` command.
 
