@@ -6,7 +6,7 @@ build-depends:
   - freedesktop-sdk.bst:components/glib.bst
   - gnome-build-meta.bst:freedesktop-sdk.bst:vm/prepare-image.bst
   - oci/layers/bluefin-init-scripts.bst
-  - filename: oci/gnomeos.bst
+  - filename: gnome-build-meta.bst:oci/gnomeos.bst
     config:
       location: /parent
   - filename: oci/layers/bluefin.bst

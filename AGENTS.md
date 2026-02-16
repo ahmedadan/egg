@@ -241,6 +241,7 @@ All agents MUST load and follow these skills before acting:
 | `packaging-go-projects` | When packaging Go projects for BuildStream |
 | `oci-layer-composition` | When working with OCI layers or the image assembly pipeline |
 | `patching-upstream-junctions` | When patching freedesktop-sdk or gnome-build-meta elements |
+| `managing-bst-overrides` | When creating, evaluating, or removing BuildStream junction overrides |
 | `removing-packages` | When removing a package from the Bluefin image |
 | `updating-upstream-refs` | When updating upstream source refs or dependency versions |
 | `debugging-bst-build-failures` | When diagnosing BuildStream build errors |
