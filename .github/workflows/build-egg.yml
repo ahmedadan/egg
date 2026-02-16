@@ -159,12 +159,14 @@ jobs:
       # ── Publish to GHCR (main branch only) ───────────────────────────
 
       - name: Login to GHCR
+        continue-on-error: true
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | \
             sudo podman login ghcr.io --username ${{ github.actor }} --password-stdin
 
       - name: Tag image for GHCR
+        continue-on-error: true
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           sudo podman tag "${{ steps.export.outputs.image_ref }}" \
@@ -173,7 +175,13 @@ jobs:
             "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
 
       - name: Push to GHCR
+        continue-on-error: true
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          sudo podman push --retry 3 "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          sudo podman push --retry 3 "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          for tag in latest "${{ github.sha }}"; do
+            for i in 1 2 3; do
+              sudo podman push "${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${tag}" && break
+              echo "Push attempt $i failed for tag ${tag}, retrying..."
+              sleep 5
+            done
+          done
