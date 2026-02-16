@@ -430,9 +430,9 @@ The plan originally called for two sticky disks (`bst-cache` + `bst-sources`) wi
 
 **Fix:** Simplified to a single sticky disk at `~/.cache/buildstream`. BuildStream creates `sources/` as a real subdirectory naturally. No symlink needed. The "Future Work" section already anticipated this: "Consider single sticky disk if symlink causes issues."
 
-### Runner upgraded to 8 vCPU
+### Runner changed to 8 vCPU, then reverted to 4 vCPU
 
-Changed from `blacksmith-4vcpu-ubuntu-2404` to `blacksmith-8vcpu-ubuntu-2404` during implementation to provide more build capacity.
+Changed from `blacksmith-4vcpu-ubuntu-2404` to `blacksmith-8vcpu-ubuntu-2404` during implementation to provide more build capacity. Reverted back to `blacksmith-4vcpu-ubuntu-2404` in `ecb023d` -- 4 vCPU is sufficient and cheaper.
 
 ### R2 cas.tar.zst is corrupt
 

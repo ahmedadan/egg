@@ -14,7 +14,7 @@ The CI pipeline (`.github/workflows/build-egg.yml`) builds the Bluefin OCI image
 | What | Value |
 |---|---|
 | Workflow file | `.github/workflows/build-egg.yml` |
-| Runner | `blacksmith-8vcpu-ubuntu-2404` |
+| Runner | `blacksmith-4vcpu-ubuntu-2404` |
 | Build target | `oci/bluefin.bst` |
 | Build timeout | 120 minutes |
 | bst2 container | `registry.gitlab.com/.../bst2:<sha>` (pinned in workflow `env.BST2_IMAGE`) |
